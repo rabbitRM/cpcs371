@@ -83,7 +83,7 @@ public class ChatClient {
                 JOptionPane.PLAIN_MESSAGE);
     }
     private void printErrorMessage(){
-    System.out.println("the room is occupaid!");
+        JOptionPane.showMessageDialog(frame, "The room is occupied!", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void run() throws IOException {
