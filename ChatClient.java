@@ -7,13 +7,15 @@ import java.net.Socket;
 import java.util.Scanner;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-/**
+/*
  * A simple Swing-based client for the chat server. Graphically it is a frame
  * with a text field for entering messages and a textarea to see the whole
  * dialog.
@@ -27,7 +29,7 @@ import javax.swing.JTextField;
  * When the server sends a line beginning with "MESSAGE" then all characters
  * following this string should be displayed in its message area.
  */
-public class ChatClient {
+public class ChatClient extends javax.swing.JFrame {
 
     String serverAddress;
     // Scanner for reading input from the server,
@@ -40,25 +42,31 @@ public class ChatClient {
     JTextField textField = new JTextField(50);
     JTextArea messageArea = new JTextArea(16, 50);
 
-    /**
+    /*
      * Constructs the client by laying out the GUI and registering a listener with
      * the textfield so that pressing Return in the listener sends the textfield
      * contents to the server. Note however that the textfield is initially NOT
      * editable, and only becomes editable AFTER the client receives the
      * NAMEACCEPTED message from the server.
      */
-    public ChatClient(String serverAddress) {
+    public ChatClient(String serverAddress) throws IOException {
         this.serverAddress = serverAddress;
+
+        messageArea.setFont(new Font("Tw Cen MT", Font.PLAIN, 18));
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setBackground(new Color(255, 255, 153));
+        messageArea.setForeground(new Color(0, 0, 0));
 
         // initializes the GUI components
         // sets the text field as initially not editable, 
-        
         textField.setEditable(false);
         messageArea.setEditable(false);
         frame.getContentPane().add(textField, BorderLayout.SOUTH);
         frame.getContentPane().add(new JScrollPane(messageArea), BorderLayout.CENTER);
         frame.pack();
-        
+
+        frame.setLocationRelativeTo(null);
         // and registers an action listener with the text field
         // Send on enter then clear to prepare for next message
         textField.addActionListener(new ActionListener() {
@@ -70,48 +78,52 @@ public class ChatClient {
                 textField.setText("");
             }
         });
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+        run();
+
     }
 
     // displays a dialog box
-    private String getName() {
+    private String getUserName() {
         return JOptionPane.showInputDialog(frame, "Choose a screen name:", "Screen name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
 
-    private String getGroup(){
+    private String getGroup() {
         return JOptionPane.showInputDialog(frame, "Choose a group name:", "group name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
-    private void printErrorMessage(){
+
+    private void printErrorMessage() {
         JOptionPane.showMessageDialog(frame, "The room is occupied!", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void run() throws IOException {
         try {
-            
+
             // It establishes a connection with the server using a Socket
             // and sets up the Scanner and PrintWriter for communication with the server.
             var socket = new Socket(serverAddress, 59001);
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(), true);
-            
 
             // continuously reads input from the server using the Scanner
             while (in.hasNextLine()) {
-                
+
                 var line = in.nextLine();
                 if (line.startsWith("SUBMITNAME")) {
-                    out.println(getName());
+                    out.println(getUserName());
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                     out.println(getGroup());
+                    out.println(getGroup());
                     this.frame.setTitle("Chatter - " + line.substring(13));
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");
-                }
-                else if (line.startsWith("GROUPERROR")){
-                  printErrorMessage();
-                  return;
+                } else if (line.startsWith("GROUPERROR")) {
+                    printErrorMessage();
+                    return;
                 }
             }
         } finally {
@@ -120,14 +132,4 @@ public class ChatClient {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Pass the server IP as the sole command line argument");
-            return;
-        }
-        var client = new ChatClient(args[0]);
-        client.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        client.frame.setVisible(true);
-        client.run();
-    }
 }
