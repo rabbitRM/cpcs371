@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 
-/**
+/*
  * A multithreaded chat room server. When a client connects the server requests
  * a screen name by sending the client the text "SUBMITNAME", and keeps
  * requesting a name until a unique one is received. After a client submits a
@@ -65,7 +65,7 @@ public class ChatServer {
         private PrintWriter out;
         private boolean withinGroup;
 
-        /**
+        /*
          * Constructs a handler thread, squirreling away the socket. All the interesting
          * work is done in the run method. Remember the constructor is called from the
          * server's main method, so this has to be as short as possible.
@@ -177,4 +177,3 @@ public class ChatServer {
 
 
 }
-
