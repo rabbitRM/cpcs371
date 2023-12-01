@@ -19,7 +19,7 @@ public class ChatClient {
     }
 
     private void createAndShowGUI() {
-        ImagePanel panel = new ImagePanel("C:\\Users\\hp\\Documents\\NetBeansProjects\\GroupChatSandC\\src\\test\\java\\Image1.jpg");
+        ImagePanel panel = new ImagePanel("Image1.jpg");
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BorderLayout());
 
@@ -117,7 +117,11 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
-        var client = new ChatClient("localhost");
+       if (args.length != 1) {
+            System.err.println("Pass the server IP as the sole command line argument");
+            return;
+        }
+        var client = new ChatClient(args[0]);
         client.createAndShowGUI();
     }
 
