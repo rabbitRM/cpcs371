@@ -1,98 +1,59 @@
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+public class ChatClient {
 
-/*
- * A simple Swing-based client for the chat server. Graphically it is a frame
- * with a text field for entering messages and a textarea to see the whole
- * dialog.
- *
- * The client follows the following Chat Protocol. When the server sends
- * "SUBMITNAME" the client replies with the desired screen name. The server will
- * keep sending "SUBMITNAME" requests as long as the client submits screen names
- * that are already in use. When the server sends a line beginning with
- * "NAMEACCEPTED" the client is now allowed to start sending the server
- * arbitrary strings to be broadcast to all chatters connected to the server.
- * When the server sends a line beginning with "MESSAGE" then all characters
- * following this string should be displayed in its message area.
- */
-public class ChatClient extends javax.swing.JFrame {
+    private String serverAddress;
+    private Scanner in;
+    private PrintWriter out;
+    private JFrame frame = new JFrame("Chatter");
+    private JTextField textField;
+    private JTextArea messageArea;
 
-    String serverAddress;
-    // Scanner for reading input from the server,
-    // a PrintWriter for sending output to the server,
-    Scanner in;
-    PrintWriter out;
-
-    // Swing components for the GUI
-    JFrame frame = new JFrame("Chatter");
-    JTextField textField = new JTextField(50);
-    JTextArea messageArea = new JTextArea(16, 50);
-
-    /*
-     * Constructs the client by laying out the GUI and registering a listener with
-     * the textfield so that pressing Return in the listener sends the textfield
-     * contents to the server. Note however that the textfield is initially NOT
-     * editable, and only becomes editable AFTER the client receives the
-     * NAMEACCEPTED message from the server.
-     */
-    public ChatClient(String serverAddress) throws IOException {
+    public ChatClient(String serverAddress) {
         this.serverAddress = serverAddress;
-
-        messageArea.setFont(new Font("Tw Cen MT", Font.PLAIN, 18));
-        messageArea.setLineWrap(true);
-        messageArea.setWrapStyleWord(true);
-        messageArea.setBackground(new Color(255, 255, 153));
-        messageArea.setForeground(new Color(0, 0, 0));
-
-        // initializes the GUI components
-        // sets the text field as initially not editable, 
-        textField.setEditable(false);
-        messageArea.setEditable(false);
-        frame.getContentPane().add(textField, BorderLayout.SOUTH);
-        frame.getContentPane().add(new JScrollPane(messageArea), BorderLayout.CENTER);
-        frame.pack();
-
-        frame.setLocationRelativeTo(null);
-        // and registers an action listener with the text field
-        // Send on enter then clear to prepare for next message
-        textField.addActionListener(new ActionListener() {
-
-            //  Pressing the Return key in the text field triggers the action listener,
-            //  which sends the contents of the text field to the server via the PrintWriter and clears the text field.
-            public void actionPerformed(ActionEvent e) {
-                out.println(textField.getText());
-                textField.setText("");
-            }
-        });
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-        run();
-
     }
 
-    // displays a dialog box
-    private String getUserName() {
+    private void createAndShowGUI() {
+        ImagePanel panel = new ImagePanel("C:\\Users\\hp\\Documents\\NetBeansProjects\\GroupChatSandC\\src\\test\\java\\Image1.jpg");
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BorderLayout());
+
+        JButton startButton = new JButton("Start");
+        startButton.setPreferredSize(new Dimension(100, 40));
+        startButton.setBackground(new Color(255, 191, 0)); // Set the button background color to RGB(255, 191, 0)
+        startButton.addActionListener(e -> {
+            frame.dispose();
+            new Thread(() -> {
+                try {
+                    run();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }).start();
+        });
+
+        buttonPanel.add(startButton, BorderLayout.CENTER);
+        frame.getContentPane().add(panel, BorderLayout.CENTER);
+        frame.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setSize(500, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    private String getName() {
         return JOptionPane.showInputDialog(frame, "Choose a screen name:", "Screen name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
 
     private String getGroup() {
-        return JOptionPane.showInputDialog(frame, "Choose a group name:", "group name selection",
+        return JOptionPane.showInputDialog(frame, "Choose a group name:", "Group name selection",
                 JOptionPane.PLAIN_MESSAGE);
     }
 
@@ -100,28 +61,51 @@ public class ChatClient extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(frame, "The room is occupied!", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    private void setupChatUI(String username) {
+        frame.getContentPane().removeAll();
+        frame.setLayout(new BorderLayout());
+
+        messageArea = new JTextArea(16, 50);
+        messageArea.setEditable(false);
+        messageArea.setBackground(new Color(249, 239, 148)); // Set the background color to yellow
+
+        JScrollPane scrollPane = new JScrollPane(messageArea);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        textField = new JTextField(50);
+        textField.addActionListener(e -> {
+            out.println(textField.getText());
+            textField.setText("");
+        });
+
+        frame.add(textField, BorderLayout.SOUTH);
+
+        frame.pack();
+
+        frame.setTitle("Chatter - " + username);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
     private void run() throws IOException {
         try {
-
-            // It establishes a connection with the server using a Socket
-            // and sets up the Scanner and PrintWriter for communication with the server.
             var socket = new Socket(serverAddress, 59001);
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            // continuously reads input from the server using the Scanner
             while (in.hasNextLine()) {
-
                 var line = in.nextLine();
                 if (line.startsWith("SUBMITNAME")) {
-                    out.println(getUserName());
+                    out.println(getName());
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    out.println(getGroup());
-                    this.frame.setTitle("Chatter - " + line.substring(13));
-                    textField.setEditable(true);
+                    String username = getGroup();
+                    out.println(username);
+                    setupChatUI(username);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");
                 } else if (line.startsWith("GROUPERROR")) {
+                    frame.setVisible(false);
                     printErrorMessage();
                     return;
                 }
@@ -132,4 +116,23 @@ public class ChatClient extends javax.swing.JFrame {
         }
     }
 
+    public static void main(String[] args) {
+        var client = new ChatClient("localhost");
+        client.createAndShowGUI();
+    }
+
+}
+
+class ImagePanel extends JPanel {
+    private Image backgroundImage;
+
+    public ImagePanel(String imagePath) {
+        backgroundImage = new ImageIcon(imagePath).getImage();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    }
 }
