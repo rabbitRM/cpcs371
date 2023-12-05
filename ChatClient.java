@@ -179,10 +179,10 @@ public class ChatClient{
     public static void main(String[] args) throws UnknownHostException {
         
         // Check if the IP address for the server is passed 
-//        if (args.length != 1) {
-//            System.err.println("Pass the server IP as the sole command line argument");
-//            return;args[0]
-//        }
+        if (args.length != 1) {
+            System.err.println("Pass the server IP as the sole command line argument");
+            return;args[0]
+        }
         
         var client = new ChatClient("localhost");
         client.createStartGUI();
