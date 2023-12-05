@@ -181,7 +181,7 @@ public class ChatClient{
         // Check if the IP address for the server is passed 
         if (args.length != 1) {
             System.err.println("Pass the server IP as the sole command line argument");
-            return;args[0]
+            return;
         }
         
         var client = new ChatClient("localhost");
