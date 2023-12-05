@@ -104,8 +104,8 @@ public class ChatServer {
         
         /**
          * Services this thread's client by repeatedly requesting a screen name
-         * until a unique one has been submitted, then acknowledges the name and
-         * registers the output stream for the client in a global set, then
+         * until a unique one has been submitted, then acknowledges the name, and
+         * requesting a group name then registers the output stream for the client in a global set, then
          * repeatedly gets inputs and broadcasts them.
          */
         public void run() {
