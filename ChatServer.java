@@ -110,8 +110,8 @@ public class ChatServer {
          */
         public void run() {
             try {
-                in = new Scanner(socket.getInputStream());
-                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new Scanner(socket.getInputStream());// Create object to read from the server
+                out = new PrintWriter(socket.getOutputStream(), true);// Create object to send to the server
 
                 // Keep requesting a name until we get a unique one.
                 while (true) {
