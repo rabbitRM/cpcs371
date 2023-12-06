@@ -184,7 +184,7 @@ public class ChatClient{
             return;
         }
         
-        var client = new ChatClient("localhost");
+        var client = new ChatClient(args[0]);
         client.createStartGUI();
     }
 
