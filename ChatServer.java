@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
  * A multithreaded chat room server. When a client connects the server requests
  * a screen name by sending the client the text "SUBMITNAME", and keeps
  * requesting a name until a unique one is received. After a client submits a
- * unique name, the server acknowledges with "NAMEACCEPTED." Then all messages
+ * unique name, the server acknowledges with "NAMEACCEPTED". Then all messages
  * from that client will be broadcast to all other clients that have submitted a
  * unique screen name. The broadcast messages are prefixed with "MESSAGE".
  *
@@ -110,8 +110,8 @@ public class ChatServer {
          */
         public void run() {
             try {
-                in = new Scanner(socket.getInputStream());// Create object to read from the server
-                out = new PrintWriter(socket.getOutputStream(), true);// Create object to send to the server
+                in = new Scanner(socket.getInputStream());// Create object to read from the client
+                out = new PrintWriter(socket.getOutputStream(), true);// Create object to send to the client
 
                 // Keep requesting a name until we get a unique one.
                 while (true) {
